@@ -1,0 +1,7 @@
+#import "./fragments/Todo.gql"
+
+query getTodo($id: ID!) {
+  getTodo(id: $id) {
+    ...Todo
+  }
+}

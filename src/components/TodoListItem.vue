@@ -1,6 +1,7 @@
 <template>
   <v-list-item @click="openTodo" class="text-left">
-    <v-list-item-avatar :color="todo.color"> </v-list-item-avatar>
+    <v-list-item-avatar :color="todo.color || 'grey lighten-2'">
+    </v-list-item-avatar>
 
     <v-list-item-content>
       <v-list-item-title v-text="todo.label"></v-list-item-title>
@@ -15,6 +16,9 @@
         </template>
 
         <v-list>
+          <v-list-item @click="markDoneTodo">
+            <v-list-item-title>Mark as done</v-list-item-title>
+          </v-list-item>
           <v-list-item @click="openTodo">
             <v-list-item-title>Edit</v-list-item-title>
           </v-list-item>
@@ -39,6 +43,10 @@ export default {
   },
 
   methods: {
+    markDoneTodo() {
+      this.$emit("markDoneTodo", this.todo.id);
+    },
+
     openTodo() {
       this.$emit("openTodo", this.todo.id);
     },

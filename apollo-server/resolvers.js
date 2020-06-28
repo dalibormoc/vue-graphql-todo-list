@@ -3,70 +3,93 @@ import shortid from 'shortid'
 
 
 export default {
-  JSON: GraphQLJSON,
-
-  Counter: {
-    countStr: counter => `Current count: ${counter.count}`,
-  },
-
-
   Query: {
-    hello: (root, { name }) => `Hello ${name || 'World'}!`,
-    messages: (root, args, { db }) => db.get('messages').value(),
-    uploads: (root, args, { db }) => db.get('uploads').value(),
+    getTodo: async (root, {
+      id
+    }, {
+      db
+    }) => {
+      const data = db.get('todos').value()
+      const todo = data.find(todo => todo.id === id);
 
+      // just for test
+      await new Promise(res => setTimeout(res, 300));
+
+      return todo
+    },
+
+    getTodos: async (root, args, {
+      db
+    }) => {
+
+      // just for test
+      await new Promise(res => setTimeout(res, 300));
+
+      return db.get('todos').value()
+    }
   },
 
   Mutation: {
-    myMutation: (root, args, context) => {
-      const message = 'My mutation completed!'
-      context.pubsub.publish('hey', { mySub: message })
-      return message
-    },
-    addMessage: (root, { input }, { pubsub, db }) => {
-      const message = {
-        id: shortid.generate(),
-        text: input.text,
+    addTodo: async (root, {
+      todo
+    }, {
+      db
+    }) => {
+      const newTodo = {
+        ...todo,
+        ...{
+          id: shortid.generate()
+        }
       }
 
       db
-        .get('messages')
-        .push(message)
+        .get('todos')
+        .push(newTodo)
         .last()
         .write()
 
-      pubsub.publish('messages', { messageAdded: message })
+      // just for test
+      await new Promise(res => setTimeout(res, 300));
 
-      return message
+      return newTodo
     },
 
-    singleUpload: (root, { file }, { processUpload }) => processUpload(file),
-    multipleUpload: (root, { files }, { processUpload }) => Promise.all(files.map(processUpload)),
+    editTodo: async (root, {
+      todo
+    }, {
+      db
+    }) => {
+      db
+        .get('todos')
+        .chain()
+        .find({
+          id: todo.id
+        })
+        .assign(todo)
+        .write();
 
-  },
+      // just for test
+      await new Promise(res => setTimeout(res, 300));
 
-  Subscription: {
-    mySub: {
-      subscribe: (parent, args, { pubsub }) => pubsub.asyncIterator('hey'),
-    },
-    counter: {
-      subscribe: (parent, args, { pubsub }) => {
-        const channel = Math.random().toString(36).substring(2, 15) // random channel name
-        let count = 0
-        setInterval(() => pubsub.publish(
-          channel,
-          {
-            // eslint-disable-next-line no-plusplus
-            counter: { count: count++ },
-          }
-        ), 2000)
-        return pubsub.asyncIterator(channel)
-      },
+      return todo
     },
 
-    messageAdded: {
-      subscribe: (parent, args, { pubsub }) => pubsub.asyncIterator('messages'),
-    },
+    deleteTodo: async (root, {
+      id
+    }, {
+      db
+    }) => {
+      db
+        .get('todos')
+        .remove({
+          id: id
+        })
+        .write()
 
+      // just for test
+      await new Promise(res => setTimeout(res, 300));
+
+      return true;
+    },
   },
 }

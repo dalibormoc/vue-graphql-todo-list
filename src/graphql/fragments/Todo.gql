@@ -1,0 +1,7 @@
+fragment Todo on Todo {
+  id
+  label
+  description
+  color
+  done
+}

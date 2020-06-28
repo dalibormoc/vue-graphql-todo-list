@@ -2,7 +2,6 @@
   <v-app>
     <v-app-bar app color="primary" dark>
       <v-toolbar-title>Todo list</v-toolbar-title>
-
       <v-spacer></v-spacer>
     </v-app-bar>
 

@@ -1,0 +1,3 @@
+mutation markTodoDoneUndone($id: ID!) {
+  markTodoDoneUndone(id: $id)
+}

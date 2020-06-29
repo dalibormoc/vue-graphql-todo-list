@@ -4,6 +4,7 @@
       <v-text-field
         hide-details
         v-model="filter"
+        placeholder="Search..."
         prepend-icon="mdi-magnify"
         single-line
         clearable
@@ -19,7 +20,7 @@
     <v-card
       flat
       class="rounded-t-0"
-      :loading="$apollo.queries.todos.loading || deleteLoading"
+      :loading="$apollo.queries.todos.loading || loading"
     >
       <v-list subheader>
         <v-subheader>To Do</v-subheader>
@@ -30,6 +31,7 @@
           :todo="todo"
           @openTodo="openTodo"
           @deleteTodo="deleteTodo"
+          @markTodoDoneUndone="markTodoDoneUndone"
         />
       </v-list>
 
@@ -44,6 +46,7 @@
           :todo="todo"
           @openTodo="openTodo"
           @deleteTodo="deleteTodo"
+          @markTodoDoneUndone="markTodoDoneUndone"
         />
       </v-list>
     </v-card>
@@ -54,6 +57,7 @@
 // graphql
 import GetTodos from "../graphql/GetTodos.gql";
 import DeleteTodo from "../graphql/DeleteTodo.gql";
+import MarkTodoDoneUndone from "../graphql/MarkTodoDoneUndone.gql";
 
 import TodoListItem from "./TodoListItem";
 
@@ -65,54 +69,42 @@ export default {
   },
 
   data: () => ({
-    deleteLoading: false,
-    filter: null,
+    loading: false,
     todos: []
-    // todos: [
-    //   {
-    //     id: "1",
-    //     label: "Todo 1",
-    //     description: "Todo 1 desciption",
-    //     color: "pink lighten-2",
-    //     done: false
-    //   },
-    //   {
-    //     id: "2",
-    //     label: "Todo 2",
-    //     description: "Todo 2 description",
-    //     color: "blue lighten-2",
-    //     done: false
-    //   },
-    //   {
-    //     id: "3",
-    //     label: "Todo 3",
-    //     description: "Todo 3 description",
-    //     color: "green lighten-2",
-    //     done: true
-    //   }
-    // ]
   }),
 
   apollo: {
     todos: {
       query: GetTodos,
-      // variables() {
-      //   return {
-      //     filter: this.filter
-      //   };
-      // },
+      variables() {
+        return {
+          filter: this.filter
+        };
+      },
       update: data => data.getTodos
     }
   },
 
   computed: {
+    filter: {
+      get() {
+        return this.$store.state.filter;
+      },
+      set(value) {
+        this.$store.commit("SET_FILTER", value);
+      }
+    },
     todosDone() {
       return this.todos
         .filter(todo => todo.done)
         .map(todo => {
           return {
             ...todo,
-            ...{ color: todo.color.split(" ")[0] + " lighten-5" }
+            ...{
+              color: todo.color
+                ? todo.color.split(" ")[0] + " lighten-5"
+                : "grey lighten-5"
+            }
           };
         });
     },
@@ -126,8 +118,33 @@ export default {
       this.$emit("openCreateEditModal", todoId);
     },
 
+    markTodoDoneUndone(todoId) {
+      this.loading = true;
+
+      this.$apollo
+        .mutate({
+          mutation: MarkTodoDoneUndone,
+          variables: { id: todoId },
+          refetchQueries: [
+            {
+              query: GetTodos,
+              variables: { filter: this.filter }
+            }
+          ]
+        })
+        .then(() => {
+          this.loading = false;
+        })
+        .catch(error => {
+          // Error
+          console.error(error);
+
+          this.loading = false;
+        });
+    },
+
     deleteTodo(todoId) {
-      this.deleteLoading = true;
+      this.loading = true;
 
       this.$apollo
         .mutate({
@@ -135,18 +152,19 @@ export default {
           variables: { id: todoId },
           refetchQueries: [
             {
-              query: GetTodos
+              query: GetTodos,
+              variables: { filter: this.filter }
             }
           ]
         })
-        .then(data => {
-          this.deleteLoading = false;
+        .then(() => {
+          this.loading = false;
         })
         .catch(error => {
           // Error
           console.error(error);
 
-          this.deleteLoading = false;
+          this.loading = false;
         });
     }
   }

@@ -64,7 +64,7 @@ export default {
   watch: {
     todoId: {
       immediate: true,
-      handler(newVal, oldVal) {
+      handler() {
         this.todo = { ...this.todoDefaults };
       }
     }
@@ -106,6 +106,9 @@ export default {
   computed: {
     title() {
       return this.todoId ? "Edit todo" : "Create todo";
+    },
+    filter() {
+      return this.$store.state.filter;
     }
   },
 
@@ -124,16 +127,20 @@ export default {
             variables: { todo: this.todo },
             refetchQueries: [
               {
-                query: GetTodos
+                query: GetTodos,
+                variables: { filter: this.filter }
               }
             ]
           })
-          .then(data => {
+          .then(() => {
             this.closeModal();
           })
           .catch(error => {
             // Error
             console.error(error);
+          })
+          .finally(() => {
+            this.todo = { ...this.todoDefaults };
           });
       }
 
@@ -145,16 +152,20 @@ export default {
             variables: { todo: this.todo },
             refetchQueries: [
               {
-                query: GetTodos
+                query: GetTodos,
+                variables: { filter: this.filter }
               }
             ]
           })
-          .then(data => {
+          .then(() => {
             this.closeModal();
           })
           .catch(error => {
             // Error
             console.error(error);
+          })
+          .finally(() => {
+            this.todo = { ...this.todoDefaults };
           });
       }
     }

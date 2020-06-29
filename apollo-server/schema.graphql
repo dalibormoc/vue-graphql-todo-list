@@ -16,11 +16,12 @@ type Todo {
 
 type Query {
   getTodo(id: ID): Todo
-  getTodos: [Todo]
+  getTodos(filter: String): [Todo]
 }
 
 type Mutation {
+  markTodoDoneUndone(id: ID!): Boolean!
   addTodo(todo: TodoInput!): Todo!
   editTodo(todo: TodoInput!): Todo!
-  deleteTodo(id: ID!): Boolean
+  deleteTodo(id: ID!): Boolean!
 }

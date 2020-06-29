@@ -16,8 +16,8 @@
         </template>
 
         <v-list>
-          <v-list-item @click="markDoneTodo">
-            <v-list-item-title>Mark as done</v-list-item-title>
+          <v-list-item @click="markTodoDoneUndone">
+            <v-list-item-title>{{ markDoneText }}</v-list-item-title>
           </v-list-item>
           <v-list-item @click="openTodo">
             <v-list-item-title>Edit</v-list-item-title>
@@ -42,9 +42,15 @@ export default {
     }
   },
 
+  computed: {
+    markDoneText() {
+      return this.todo.done ? "Mark as undone" : "Mark as done";
+    }
+  },
+
   methods: {
-    markDoneTodo() {
-      this.$emit("markDoneTodo", this.todo.id);
+    markTodoDoneUndone() {
+      this.$emit("markTodoDoneUndone", this.todo.id);
     },
 
     openTodo() {

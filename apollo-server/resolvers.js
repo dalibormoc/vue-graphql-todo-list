@@ -18,18 +18,52 @@ export default {
       return todo
     },
 
-    getTodos: async (root, args, {
+    getTodos: async (root, {
+      filter
+    }, {
       db
     }) => {
 
       // just for test
       await new Promise(res => setTimeout(res, 300));
 
-      return db.get('todos').value()
+      return db
+        .get('todos')
+        .filter(todo => todo.label.includes(filter || ""))
+        .value()
     }
   },
 
   Mutation: {
+    markTodoDoneUndone: async (root, {
+      id
+    }, {
+      db
+    }) => {
+      const todo = db
+        .get('todos')
+        .find({
+          id: id
+        })
+        .value();
+
+      todo.done = !todo.done
+
+      db.get('todos')
+        .find({
+          id: id
+        })
+        .assign(
+          todo
+        )
+        .write();
+
+      // just for test
+      await new Promise(res => setTimeout(res, 300));
+
+      return true;
+    },
+
     addTodo: async (root, {
       todo
     }, {
